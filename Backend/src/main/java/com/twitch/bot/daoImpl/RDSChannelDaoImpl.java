@@ -3,10 +3,8 @@ package com.twitch.bot.daoImpl;
 import com.twitch.bot.aws.AWSRelationalDatabaseSystem;
 import com.twitch.bot.dao.RDSDao;
 import com.twitch.bot.model.Channel;
+import com.twitch.bot.utilites.Constants;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
@@ -38,8 +36,9 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
 
     @Override
     public Channel get(Integer id) throws Exception{
-        String filterCondition = "";
-        filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID + " = " + id;
+        String filterCondition ;
+        filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID
+                + Constants.EQUALS + id;
 
         ResultSet result = getTwitchStreamersRecordBasedOnCriteria(getAllTwitchStreamersColumns(), filterCondition);
         while(result.next()){
@@ -53,7 +52,8 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         if (!ifGivenObjectIsValid(channel.getId())) {
             return false;
         }
-        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID.toString() + " = " + channel.getId();
+        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID
+                + Constants.EQUALS + channel.getId();
         return deleteTwitchStreamersRecord(filterCondition);
     }
 
@@ -61,8 +61,8 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
     public Channel getChannelDetails(String channelName, String twitchId) throws Exception{
         String filterCondition = "";
         if(ifGivenObjectIsValid(channelName)){
-            filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME + " = "
-                    + addStringLiteralToString(channelName);
+            filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME
+                    + Constants.EQUALS + addStringLiteralToString(channelName);
         }
         if(ifGivenObjectIsValid(twitchId)){
             if(!filterCondition.trim().equals("")){
@@ -96,16 +96,20 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         if(!ifGivenObjectIsValid(channel.getId())){
             return false;
         }
-        String filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID.toString() + " = " + channel.getId();
+        String filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID.toString()
+                + Constants.EQUALS + channel.getId();
         JSONObject data = new JSONObject();
         if(ifGivenObjectIsValid(channel.getChannelName())){
-            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString(), channel.getChannelName());
+            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString(),
+                    channel.getChannelName());
         }
         if(ifGivenObjectIsValid(channel.getTwitchId())){
-            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString(), channel.getTwitchId());
+            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString(),
+                    channel.getTwitchId());
         }
         if(ifGivenObjectIsValid(channel.getIsListeningToChannel())){
-            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString(), channel.getIsListeningToChannel());
+            data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString(),
+                    channel.getIsListeningToChannel());
         }
         if(!data.isEmpty()){
             return updateTwitchStreamersRecord(data, filterCondition);
@@ -117,7 +121,8 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         if(!ifGivenObjectIsValid(channelId)){
             return false;
         }
-        String filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID + " = " + channelId;
+        String filterCondition = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID
+                + Constants.EQUALS + channelId;
         JSONObject data = new JSONObject();
         if(ifGivenObjectIsValid(isListeningToChannel)){
             data.put(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString(),
@@ -149,25 +154,34 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         return result;
     }
 
-    protected Integer createTwitchStreamersRecord(String name, String twitchId, Boolean isListeningToChannel) throws Exception{
+    protected Integer createTwitchStreamersRecord(String name,
+                                                  String twitchId,
+                                                  Boolean isListeningToChannel) throws Exception{
         Statement statement = rdsConnection.createStatement();
         String columnNames = "";
         String values = "";
         if(name != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString());
+            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.
+                    TWITCH_STREAMERS.COLUMN_NAME.toString());
             values = buildColumnName(values, addStringLiteralToString(name));
         }
         if(twitchId != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString());
+            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.
+                    TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString());
             values = buildColumnName(values, addStringLiteralToString(twitchId));
         }
         if(isListeningToChannel != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString());
+            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.
+                    TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString());
             values = buildColumnName(values, addStringLiteralToString(isListeningToChannel.toString()));
         }
         ResultSet result = null;
         if(!columnNames.trim().equals("")){
-            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.CREATE_RECORDS.toString().replace("{0}", columnNames).replace("{1}", values), Statement.RETURN_GENERATED_KEYS);
+            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.
+                    TWITCH_STREAMERS.CREATE_RECORDS.toString()
+                    .replace("{0}", columnNames)
+                    .replace("{1}", values),
+                    Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
                 throw new SQLException("No Rows Created.");
@@ -181,7 +195,6 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
                 throw new SQLException("Creating Twitch Streamers failed, no ID obtained.");
             }
         }
-
         return null;
     }
 
@@ -189,16 +202,36 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         Statement statement = rdsConnection.createStatement();
         String columnNames = "";
         if(data.has(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString() + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME
+                            + Constants.EQUALS + addStringLiteralToString(
+                                    data.get(
+                                            AWSRelationalDatabaseSystem.TWITCH_STREAMERS
+                                                    .COLUMN_NAME.toString()).toString()));
         }
         if(data.has(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString() + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID
+                            + Constants.EQUALS
+                            + addStringLiteralToString(data.get(
+                                    AWSRelationalDatabaseSystem.TWITCH_STREAMERS.
+                                            COLUMN_TWITCH_ID.toString()).toString()));
         }
         if(data.has(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString() + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL
+                            + Constants.EQUALS + addStringLiteralToString(data.get(
+                                    AWSRelationalDatabaseSystem.TWITCH_STREAMERS
+                                            .COLUMN_IS_LISTENING_TO_CHANNEL
+                                            .toString()).toString()));
         }
-        if(!columnNames.trim().equals("") && whereCondition != null && !whereCondition.trim().equals("")){
-            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.UPDATE_RECORDS.toString().replace("{0}", columnNames).replace("{1}", whereCondition), Statement.RETURN_GENERATED_KEYS);
+        if(!columnNames.trim().equals("") && whereCondition != null
+                && !whereCondition.trim().equals("")){
+            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.TWITCH_STREAMERS
+                    .UPDATE_RECORDS.toString()
+                    .replace("{0}", columnNames)
+                    .replace("{1}", whereCondition),
+                    Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
                 throw new SQLException("No Rows Updated.");
@@ -210,7 +243,7 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
 
     protected Boolean deleteTwitchStreamersRecord(String whereCondition) throws Exception{
         Statement statement = rdsConnection.createStatement();
-        ResultSet result = null;
+        ResultSet result;
         if(whereCondition != null && !whereCondition.trim().equals("")){
             int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.DELETE_RECORDS
                             .toString().replace("{0}", whereCondition),
@@ -234,9 +267,11 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
 
     protected List<String> getAllTwitchStreamersColumns(){
         List<String> columns = new ArrayList<>();
-        AWSRelationalDatabaseSystem.TWITCH_STREAMERS[] twitchStreamersVal = AWSRelationalDatabaseSystem.TWITCH_STREAMERS.values();
+        AWSRelationalDatabaseSystem.TWITCH_STREAMERS[] twitchStreamersVal =
+                AWSRelationalDatabaseSystem.TWITCH_STREAMERS.values();
         for(AWSRelationalDatabaseSystem.TWITCH_STREAMERS twitchStream : twitchStreamersVal){
-            if(twitchStream.name().startsWith("COLUMN_") && !twitchStream.name().equals("COLUMN_PRIMARY")){
+            if(twitchStream.name().startsWith("COLUMN_")
+                    && !twitchStream.name().equals("COLUMN_PRIMARY")){
                 columns.add(twitchStream.toString());
             }
         }
@@ -247,7 +282,9 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         return new Channel(result.getInt(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_ID.toString()),
                 result.getString(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_NAME.toString()),
                 result.getString(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID.toString()),
-                Boolean.valueOf(result.getString(AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_IS_LISTENING_TO_CHANNEL.toString())));
+                Boolean.valueOf(result.getString(
+                        AWSRelationalDatabaseSystem.TWITCH_STREAMERS
+                                .COLUMN_IS_LISTENING_TO_CHANNEL.toString())));
     }
 
     private Boolean ifGivenObjectIsValid(Object data){
@@ -262,7 +299,7 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
     }
 
     protected String buildColumnName(String columnNames, Object currentColumnName){
-        if(columnNames.trim() != ""){
+        if(!columnNames.trim().equals("")){
             columnNames += ", ";
         }
         columnNames += currentColumnName;

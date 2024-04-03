@@ -3,6 +3,8 @@ package com.twitch.bot.daoImpl;
 import com.twitch.bot.aws.AWSRelationalDatabaseSystem;
 import com.twitch.bot.dao.RDSDao;
 import com.twitch.bot.model.User;
+import com.twitch.bot.utilites.Constants;
+import org.apache.tomcat.util.bcel.Const;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +39,7 @@ public class RDSUserDaoImpl implements RDSDao<User> {
 
     @Override
     public User get(Integer userId) throws Exception {
-        String filterCondition = "";
-        filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID + " = " + userId;
+        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID + Constants.EQUALS + userId;
 
         ResultSet result = getUsersRecordBasedOnCriteria(getAllUsersColumns(), filterCondition);
         while(result.next()){
@@ -52,23 +53,24 @@ public class RDSUserDaoImpl implements RDSDao<User> {
         if (!ifGivenObjectIsValid(user.getUserId())) {
             return false;
         }
-        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID.toString() + " = " + user.getUserId();
+        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID
+                + Constants.EQUALS + user.getUserId();
         return deleteUsersRecord(filterCondition);
     }
 
 
     public User getUserDetails(String emailOrName, String password, Boolean isName) throws Exception{
-        String filterCondition = "";
+        String filterCondition;
         if(isName){
             filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_NAME
-                    + " = " + addStringLiteralToString(emailOrName);
+                    + Constants.EQUALS + addStringLiteralToString(emailOrName);
         }else{
             filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
-                    + " = " + addStringLiteralToString(emailOrName);
+                    + Constants.EQUALS + addStringLiteralToString(emailOrName);
         }
         filterCondition += " " + AWSRelationalDatabaseSystem.AND + " "
                 + AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD
-                + " = " + addStringLiteralToString(password);
+                + Constants.EQUALS + addStringLiteralToString(password);
 
         ResultSet result = getUsersRecordBasedOnCriteria(getAllUsersColumns(), filterCondition);
         while(result.next()){
@@ -78,13 +80,13 @@ public class RDSUserDaoImpl implements RDSDao<User> {
     }
 
     public User getUserDetails(String emailOrName, Boolean isName) throws Exception{
-        String filterCondition = "";
+        String filterCondition;
         if(isName){
             filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_NAME
-                    + " = " + addStringLiteralToString(emailOrName);
+                    + Constants.EQUALS + addStringLiteralToString(emailOrName);
         }else{
             filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
-                    + " = " + addStringLiteralToString(emailOrName);
+                    + Constants.EQUALS + addStringLiteralToString(emailOrName);
         }
 
         ResultSet result = getUsersRecordBasedOnCriteria(getAllUsersColumns(), filterCondition);
@@ -106,7 +108,8 @@ public class RDSUserDaoImpl implements RDSDao<User> {
         if(!ifGivenObjectIsValid(user.getUserId())){
             return false;
         }
-        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID + " = " + user.getUserId();
+        String filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_ID
+                + Constants.EQUALS + user.getUserId();
         JSONObject data = new JSONObject();
         if(ifGivenObjectIsValid(user.getName())){
             data.put(AWSRelationalDatabaseSystem.USERS.COLUMN_NAME.toString(), user.getName());
@@ -131,20 +134,29 @@ public class RDSUserDaoImpl implements RDSDao<User> {
         String columnNames = "";
         String values = "";
         if(name != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_NAME.toString());
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS.COLUMN_NAME.toString());
             values = buildColumnName(values, addStringLiteralToString(name));
         }
         if(email != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL.toString());
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL.toString());
             values = buildColumnName(values, addStringLiteralToString(email));
         }
         if(password != null){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD.toString());
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS
+                            .COLUMN_PASSWORD.toString());
             values = buildColumnName(values, addStringLiteralToString(password));
         }
-        ResultSet result = null;
-        if(columnNames.trim() != ""){
-            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.USERS.CREATE_RECORDS.toString().replace("{0}", columnNames).replace("{1}", values), Statement.RETURN_GENERATED_KEYS);
+        ResultSet result;
+        if(!columnNames.trim().equals("")){
+            int affectedRows =  statement.executeUpdate(
+                    AWSRelationalDatabaseSystem.USERS
+                            .CREATE_RECORDS.toString()
+                            .replace("{0}", columnNames)
+                            .replace("{1}", values),
+                    Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
                 throw new SQLException("No Rows Created.");
@@ -164,9 +176,13 @@ public class RDSUserDaoImpl implements RDSDao<User> {
 
     private Boolean deleteUsersRecord(String whereCondition) throws Exception{
         Statement statement = rdsConnection.createStatement();
-        ResultSet result = null;
-        if(whereCondition != null && whereCondition.trim() != ""){
-            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.USERS.DELETE_RECORDS.toString().replace("{0}", whereCondition), Statement.RETURN_GENERATED_KEYS);
+        ResultSet result;
+        if(whereCondition != null && !whereCondition.trim().equals("")){
+            int affectedRows =  statement.executeUpdate(
+                    AWSRelationalDatabaseSystem.USERS
+                            .DELETE_RECORDS.toString()
+                            .replace("{0}", whereCondition),
+                    Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
                 throw new SQLException("No Rows Deleted.");
@@ -187,16 +203,25 @@ public class RDSUserDaoImpl implements RDSDao<User> {
         Statement statement = rdsConnection.createStatement();
         String columnNames = "";
         if(data.has(AWSRelationalDatabaseSystem.USERS.COLUMN_NAME.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_NAME
-                    + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.USERS.COLUMN_NAME.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS.COLUMN_NAME
+                    + Constants.EQUALS + addStringLiteralToString(data.get(
+                            AWSRelationalDatabaseSystem.USERS.COLUMN_NAME
+                                    .toString()).toString()));
         }
         if(data.has(AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
-                    + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
+                    + Constants.EQUALS + addStringLiteralToString(
+                            data.get(AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
+                                    .toString()).toString()));
         }
         if(data.has(AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD.toString())){
-            columnNames = buildColumnName(columnNames, AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD
-                    + " = " + addStringLiteralToString(data.get(AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD.toString()).toString()));
+            columnNames = buildColumnName(columnNames,
+                    AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD
+                    + Constants.EQUALS + addStringLiteralToString(
+                            data.get(AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD
+                                    .toString()).toString()));
         }
         if(!columnNames.trim().equals("") && whereCondition != null && !whereCondition.trim().equals("")){
             int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.USERS.UPDATE_RECORDS
@@ -260,7 +285,7 @@ public class RDSUserDaoImpl implements RDSDao<User> {
     }
 
     protected String buildColumnName(String columnNames, Object currentColumnName){
-        if(columnNames.trim() != ""){
+        if(!columnNames.trim().equals("")){
             columnNames += ", ";
         }
         columnNames += currentColumnName;

@@ -85,6 +85,18 @@ public class Constants {
     public static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
     public static final String APPLICATION_JSON = "application/json";
 
+    // RDS Constants
+    public static final String EQUALS = " = ";
+    public static final String AND = "AND";
+    public static final String RDS_DB_NAME = "twitchdb";
+    public static final String RDS_USERNAME = "root";
+    public static final String RDS_PASSWORD = "root1234";
+    public static final String RDS_HOSTNAME = "twitchdb.cc3vhgvflzt3.us-east-1.rds.amazonaws.com";
+    public static final String RDS_PORT = "3306";
+    public static final String SHOW_DATABASES = "SHOW DATABASES";
+    public static final String CREATE_DATABASES = "CREATE DATABASES ";
+    public static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
+
 
 
     // Misc

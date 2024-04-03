@@ -4,7 +4,7 @@ import com.twitch.bot.aws.AWSRelationalDatabaseSystem;
 import com.twitch.bot.dao.RDSDao;
 import com.twitch.bot.model.Channel;
 import com.twitch.bot.model.Subscriptions;
-import com.twitch.bot.model.User;
+import com.twitch.bot.utilites.Constants;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +26,8 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
     @Override
     public List<Subscriptions> getAll() throws Exception{
         Statement statement = rdsConnection.createStatement();
-        ResultSet result = statement.executeQuery(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.SELECT_RECORDS_WITHOUT_WHERE
+        ResultSet result = statement.executeQuery(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
+                .SELECT_RECORDS_WITHOUT_WHERE
                 .toString().replace("{0}", "*"));
         List<Subscriptions> subscriptions = new ArrayList<>();
         while(result.next()){
@@ -39,10 +40,12 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
 
     @Override
     public Subscriptions get(Integer id) throws Exception {
-        String filterCondition = "";
-        filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_PRIMARY.toString() + " = " + id;
+        String filterCondition;
+        filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_PRIMARY
+                + Constants.EQUALS + id;
 
-        ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(getAllUsersSubscriptionColumns(), filterCondition);
+        ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(
+                getAllUsersSubscriptionColumns(), filterCondition);
         while(result.next()){
             return getSubscriptionsFromResultSet(result);
         }
@@ -55,25 +58,27 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
             return false;
         }
         String filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
-                + " = " + subscription.getUserId() + " "
+                + Constants.EQUALS + subscription.getUserId() + " "
                 + AWSRelationalDatabaseSystem.AND + " "
-                + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID + " = "
+                + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID + Constants.EQUALS
                 + subscription.getChannelId();
         return deleteUsersSubscriptionRecord(filterCondition);
     }
 
     public List<Subscriptions> getSubscriptionDetailsBasedOnUserOrSubscriptionId(Integer id, Boolean isUserId)
             throws Exception{
-        String filterCondition = "";
+        String filterCondition;
         if(isUserId){
-            filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID + " = " + id;
+            filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
+                    + Constants.EQUALS + id;
         }else{
-            filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID + " = " + id;
+            filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
+                    + Constants.EQUALS + id;
         }
 
         List<Subscriptions> data = new ArrayList<>();
-
-        ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(getAllUsersSubscriptionColumns(), filterCondition);
+        ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(
+                getAllUsersSubscriptionColumns(), filterCondition);
         while(result.next()){
             data.add(getSubscriptionsFromResultSet(result));
         }
@@ -81,19 +86,15 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
     }
 
     public Boolean checkIfSubscriptionExists(Integer userId, Integer channelId) throws Exception {
-        String filterCondition = "";
-        filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID + " = " + userId;
+        String filterCondition;
+        filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
+                + Constants.EQUALS + userId;
         filterCondition += " " + AWSRelationalDatabaseSystem.AND + " "
-                + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID + " = " + channelId;
-
-        List<Subscriptions> data = new ArrayList<>();
-
+                + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
+                + Constants.EQUALS + channelId;
         ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(
                 getAllUsersSubscriptionColumns(), filterCondition);
-        while (result.next()) {
-            return true;
-        }
-        return false;
+        return result.next();
     }
 
 
@@ -108,9 +109,9 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
 
     public Boolean deleteSubscriptionDetailsForAChannel(Channel channel, Integer userId) throws Exception {
         String filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
-                + " = " + channel.getId() + " " + AWSRelationalDatabaseSystem.AND + " "
+                + Constants.EQUALS + channel.getId() + " " + AWSRelationalDatabaseSystem.AND + " "
                 + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
-                + " = " + userId;
+                + Constants.EQUALS + userId;
         return deleteUsersSubscriptionRecord(filterCondition);
     }
 
@@ -150,7 +151,7 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
             values = buildColumnName(values, twitchId);
         }
 
-        ResultSet result = null;
+        ResultSet result;
         if(!columnNames.trim().equals("")){
             int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem
                     .USER_SUBSCRIPTION.CREATE_RECORDS.toString()
@@ -181,20 +182,27 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
                                 .USER_SUBSCRIPTION.COLUMN_USER_ID.toString()).toString()) > 0){
             columnNames = buildColumnName(columnNames,
                     AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
-                            + " = " + Integer.parseInt(data.get(AWSRelationalDatabaseSystem
-                            .USER_SUBSCRIPTION.COLUMN_USER_ID.toString()).toString()));
+                            + Constants.EQUALS + Integer.parseInt(
+                                    data.get(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
+                                            .COLUMN_USER_ID.toString()).toString()));
         }
         if(data.has(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID.toString())
-                && Integer.parseInt(data.get(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
-                .COLUMN_TWITCH_STREAMERS_ID.toString()).toString()) > 0){
+                && Integer.parseInt(
+                        data.get(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
+                .COLUMN_TWITCH_STREAMERS_ID
+                                .toString()).toString()) > 0){
             columnNames = buildColumnName(columnNames,
                     AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
-                            + " = " + Integer.parseInt(data.get(AWSRelationalDatabaseSystem
-                            .USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID.toString()).toString()));
+                            + Constants.EQUALS + Integer.parseInt(data.get(
+                                    AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
+                                            .COLUMN_TWITCH_STREAMERS_ID
+                                            .toString()).toString()));
         }
         if(!columnNames.trim().equals("") && whereCondition != null && !whereCondition.trim().equals("")){
             int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
-                    .UPDATE_RECORDS.toString().replace("{0}", columnNames).replace("{1}", whereCondition),
+                    .UPDATE_RECORDS.toString()
+                            .replace("{0}", columnNames)
+                            .replace("{1}", whereCondition),
                     Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
@@ -207,11 +215,11 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
 
     private Boolean deleteUsersSubscriptionRecord(String whereCondition) throws Exception{
         Statement statement = rdsConnection.createStatement();
-        ResultSet result = null;
-        if(whereCondition != null && whereCondition.trim() != ""){
-            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem
-                    .USER_SUBSCRIPTION
-                    .DELETE_RECORDS.toString().replace("{0}", whereCondition), Statement.RETURN_GENERATED_KEYS);
+        ResultSet result;
+        if(whereCondition != null && !whereCondition.trim().equals("")){
+            int affectedRows =  statement.executeUpdate(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION
+                    .DELETE_RECORDS.toString().replace("{0}", whereCondition),
+                    Statement.RETURN_GENERATED_KEYS);
 
             if (affectedRows == 0) {
                 throw new SQLException("No Rows Deleted.");
@@ -255,7 +263,9 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
     }
 
     private Subscriptions getSubscriptionsFromResultSet(ResultSet result) throws Exception{
-        return new Subscriptions(result.getInt(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID.toString()),
-                result.getInt(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID.toString()));
+        return new Subscriptions(result.getInt(
+                AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID.toString()),
+                result.getInt(AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
+                        .toString()));
     }
 }

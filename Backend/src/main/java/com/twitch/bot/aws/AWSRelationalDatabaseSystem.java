@@ -12,20 +12,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.json.JSONObject;
+import com.twitch.bot.utilites.Constants;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AWSRelationalDatabaseSystem {
     private static final Logger LOG = Logger.getLogger(AWSRelationalDatabaseSystem.class.getName());
     public static Connection rdsConnection;
-    public static final String AND = "AND";
-    private static final String RDS_DB_NAME = "twitchdb";
-    private static final String RDS_USERNAME = "root";
-    private static final String RDS_PASSWORD = "root1234";
-    private static final String RDS_HOSTNAME = "twitchdb.cc3vhgvflzt3.us-east-1.rds.amazonaws.com";
-    private static final String RDS_PORT = "3306";
-
+    
     public enum USERS{
         TABLENAME("Users"),
         COLUMN_ID("USER_ID"),
@@ -33,13 +27,20 @@ public class AWSRelationalDatabaseSystem {
         COLUMN_EMAIL("EMAIL"),
         COLUMN_PASSWORD("PASSWORD"),
         COLUMN_PRIMARY("USER_ID"),
-        CREATE_TABLE("CREATE TABLE " + TABLENAME.toString() + "(" + COLUMN_ID.toString() + " INTEGER AUTO_INCREMENT not NULL, " + COLUMN_NAME.toString() + " VARCHAR(255), " + COLUMN_EMAIL.toString() + " VARCHAR(255), " + COLUMN_PASSWORD.toString() + " VARCHAR(255), PRIMARY KEY ( " + COLUMN_PRIMARY.toString() + " ))"),
-        DROP_TABLE("DROP TABLE " + TABLENAME.toString()),
-        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME.toString()),
-        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME.toString() + " WHERE {1}"),
-        CREATE_RECORDS("INSERT INTO " + TABLENAME.toString() + "( {0} )" + " VALUES " + " ( {1} )"),
-        UPDATE_RECORDS("UPDATE " + TABLENAME.toString() + " SET {0}" + " WHERE " + " {1}"),
-        DELETE_RECORDS("DELETE FROM " + TABLENAME.toString() + " WHERE " + " {0}");
+        CREATE_TABLE("CREATE TABLE " + TABLENAME
+                + "("
+                + COLUMN_ID + " INTEGER AUTO_INCREMENT not NULL, "
+                + COLUMN_NAME + " VARCHAR(255), "
+                + COLUMN_EMAIL + " VARCHAR(255), "
+                + COLUMN_PASSWORD + " VARCHAR(255), "
+                + "PRIMARY KEY ( " + COLUMN_PRIMARY
+                + " ))"),
+        DROP_TABLE("DROP TABLE " + TABLENAME),
+        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME),
+        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME + " WHERE {1}"),
+        CREATE_RECORDS("INSERT INTO " + TABLENAME + "( {0} )" + " VALUES " + " ( {1} )"),
+        UPDATE_RECORDS("UPDATE " + TABLENAME + " SET {0}" + " WHERE " + " {1}"),
+        DELETE_RECORDS("DELETE FROM " + TABLENAME + " WHERE " + " {0}");
 
         String attributeName;
 
@@ -60,13 +61,20 @@ public class AWSRelationalDatabaseSystem {
         COLUMN_TWITCH_ID("TWITCH_ID"),
         COLUMN_IS_LISTENING_TO_CHANNEL("IS_LISTENING_TO_CHANNEL"),
         COLUMN_PRIMARY("ID"),
-        CREATE_TABLE("CREATE TABLE " + TABLENAME.toString() + "(" + COLUMN_ID.toString() + " INTEGER AUTO_INCREMENT not NULL, " + COLUMN_NAME.toString() + " VARCHAR(255), " + COLUMN_TWITCH_ID.toString() + " VARCHAR(255), " + COLUMN_IS_LISTENING_TO_CHANNEL.toString() + " VARCHAR(255), PRIMARY KEY ( " + COLUMN_PRIMARY.toString() + " ))"),
-        DROP_TABLE("DROP TABLE " + TABLENAME.toString()),
-        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME.toString()),
-        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME.toString() + " WHERE {1}"),
-        CREATE_RECORDS("INSERT INTO " + TABLENAME.toString() + "( {0} )" + " VALUES " + " ( {1} )"),
-        UPDATE_RECORDS("UPDATE " + TABLENAME.toString() + " SET {0}" + " WHERE " + " {1}"),
-        DELETE_RECORDS("DELETE FROM " + TABLENAME.toString() + " WHERE " + " {0}");
+        CREATE_TABLE("CREATE TABLE " + TABLENAME
+                + "("
+                + COLUMN_ID + " INTEGER AUTO_INCREMENT not NULL, "
+                + COLUMN_NAME + " VARCHAR(255), "
+                + COLUMN_TWITCH_ID + " VARCHAR(255), "
+                + COLUMN_IS_LISTENING_TO_CHANNEL + " VARCHAR(255)," +
+                " PRIMARY KEY ( " + COLUMN_PRIMARY
+                + " ))"),
+        DROP_TABLE("DROP TABLE " + TABLENAME),
+        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME),
+        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME + " WHERE {1}"),
+        CREATE_RECORDS("INSERT INTO " + TABLENAME + "( {0} )" + " VALUES " + " ( {1} )"),
+        UPDATE_RECORDS("UPDATE " + TABLENAME + " SET {0}" + " WHERE " + " {1}"),
+        DELETE_RECORDS("DELETE FROM " + TABLENAME + " WHERE " + " {0}");
 
         String attributeName;
 
@@ -86,13 +94,21 @@ public class AWSRelationalDatabaseSystem {
         COLUMN_USER_ID("USER_ID"),
         COLUMN_TWITCH_STREAMERS_ID("TWITCH_STREAMERS_ID"),
         COLUMN_PRIMARY("ID"),
-        CREATE_TABLE("CREATE TABLE " + TABLENAME.toString() + "(" + COLUMN_ID.toString()  + " INTEGER AUTO_INCREMENT not NULL, " + COLUMN_USER_ID.toString() + " INTEGER not NULL, " + COLUMN_TWITCH_STREAMERS_ID.toString() + " INTEGER not NULL, FOREIGN KEY(" + COLUMN_USER_ID.toString() + ") references " + USERS.TABLENAME.toString() + "(" + USERS.COLUMN_ID.toString() + "),  FOREIGN KEY(" + COLUMN_TWITCH_STREAMERS_ID.toString() + ") references " + TWITCH_STREAMERS.TABLENAME.toString() + "(" + TWITCH_STREAMERS.COLUMN_ID.toString() + ")" + ", PRIMARY KEY ( " + COLUMN_PRIMARY.toString() + " ))"),
-        DROP_TABLE("DROP TABLE " + TABLENAME.toString()),
-        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME.toString()),
-        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME.toString() + " WHERE {1}"),
-        CREATE_RECORDS("INSERT INTO " + TABLENAME.toString() + "( {0} )" + " VALUES " + " ( {1} )"),
-        UPDATE_RECORDS("UPDATE " + TABLENAME.toString() + " SET {0}" + " WHERE " + " {1}"),
-        DELETE_RECORDS("DELETE FROM " + TABLENAME.toString() + " WHERE " + " {0}");
+        CREATE_TABLE("CREATE TABLE " + TABLENAME
+                + "("
+                + COLUMN_ID  + " INTEGER AUTO_INCREMENT not NULL, "
+                + COLUMN_USER_ID + " INTEGER not NULL, "
+                + COLUMN_TWITCH_STREAMERS_ID + " INTEGER not NULL, "
+                + "FOREIGN KEY (" + COLUMN_USER_ID + ") references " + USERS.TABLENAME + "(" + USERS.COLUMN_ID + "), "
+                + "FOREIGN KEY(" + COLUMN_TWITCH_STREAMERS_ID + ") references " + TWITCH_STREAMERS.TABLENAME+ "(" + TWITCH_STREAMERS.COLUMN_ID + "), "
+                + "PRIMARY KEY ( " + COLUMN_PRIMARY
+                + " ))"),
+        DROP_TABLE("DROP TABLE " + TABLENAME),
+        SELECT_RECORDS_WITHOUT_WHERE("SELECT {0} FROM " + TABLENAME),
+        SELECT_RECORDS_WITH_WHERE("SELECT {0} FROM " + TABLENAME + " WHERE {1}"),
+        CREATE_RECORDS("INSERT INTO " + TABLENAME + "( {0} )" + " VALUES " + " ( {1} )"),
+        UPDATE_RECORDS("UPDATE " + TABLENAME + " SET {0}" + " WHERE " + " {1}"),
+        DELETE_RECORDS("DELETE FROM " + TABLENAME + " WHERE " + " {0}");
 
         String attributeName;
 
@@ -117,11 +133,11 @@ public class AWSRelationalDatabaseSystem {
 
     private Connection make_RDS_JDBC_Connection() throws Exception{
         LOG.log(Level.INFO, "Getting remote connection with connection string from environment variables");
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        checkAndCreateDatabase(RDS_DB_NAME);
-        final String jdbcUrl = "jdbc:mysql://" + RDS_HOSTNAME + ":" + RDS_PORT
-                + "/" + RDS_DB_NAME + "?user=" + RDS_USERNAME
-                + "&password=" + RDS_PASSWORD;
+        Class.forName(Constants.JDBC_DRIVER);
+        checkAndCreateDatabase(Constants.RDS_DB_NAME);
+        final String jdbcUrl = "jdbc:mysql://" + Constants.RDS_HOSTNAME + ":" + Constants.RDS_PORT
+                + "/" + Constants.RDS_DB_NAME + "?user=" + Constants.RDS_USERNAME
+                + "&password=" + Constants.RDS_PASSWORD;
         Connection connection = DriverManager.getConnection(jdbcUrl);
         LOG.log(Level.INFO, "RDS JDBC Connection Successful");
         return connection;
@@ -129,13 +145,15 @@ public class AWSRelationalDatabaseSystem {
 
     public void checkAndCreateDatabase(String dbName){
             try {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                String myConnectionString = "jdbc:mysql://" + RDS_HOSTNAME + ":" + RDS_PORT + "?" +
-                        "useUnicode=yes&characterEncoding=UTF-8";
-                Connection connection = DriverManager.getConnection(myConnectionString, RDS_USERNAME, RDS_PASSWORD);
+                Class.forName(Constants.JDBC_DRIVER);
+                String myConnectionString = "jdbc:mysql://" + Constants.RDS_HOSTNAME
+                        + ":" + Constants.RDS_PORT
+                        + "?useUnicode=yes&characterEncoding=UTF-8";
+                Connection connection = DriverManager.getConnection(
+                        myConnectionString, Constants.RDS_USERNAME, Constants.RDS_PASSWORD);
                 boolean isDbPresent = false;
                 Statement stmt = connection.createStatement();
-                stmt.execute("SHOW DATABASES");
+                stmt.execute(Constants.SHOW_DATABASES);
                 ResultSet rs = stmt.getResultSet();
                 while (rs.next()) {
                     if(dbName.equals(rs.getString(1))){
@@ -144,7 +162,7 @@ public class AWSRelationalDatabaseSystem {
                 }
                 if(!isDbPresent){
                     stmt = connection.createStatement();
-                    stmt.execute("CREATE DATABASE " + dbName);
+                    stmt.execute(Constants.CREATE_DATABASES + dbName);
                 }
                 rs.close();
                 stmt.close();
@@ -165,7 +183,7 @@ public class AWSRelationalDatabaseSystem {
         }
         tables.removeAll(existingTables);
         if(!tables.isEmpty()){
-            LOG.log(Level.SEVERE, "Tables Not Found In RDS ::: "+ tables.toString());
+            LOG.log(Level.SEVERE, "Tables Not Found In RDS ::: "+ tables);
             for (String tableName : tables) {
                 LOG.log(Level.INFO, "Creating Table " + tableName);
                 createTable(tableName);
