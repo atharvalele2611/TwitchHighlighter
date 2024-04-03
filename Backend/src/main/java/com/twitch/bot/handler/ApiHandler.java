@@ -1,9 +1,8 @@
 package com.twitch.bot.handler;
 
-import com.google.protobuf.Api;
+import com.twitch.bot.utilites.Constants;
 import org.apache.http.client.methods.*;
 import org.springframework.stereotype.Component;
-import com.twitch.bot.utilites.TwitchData;
 
 import java.io.*;
 import java.net.Socket;
@@ -20,7 +19,6 @@ import org.json.JSONObject;
 import org.springframework.context.annotation.DependsOn;
 
 @Component
-@DependsOn({"twitchData"})
 public class ApiHandler {
     private static final Logger LOG = Logger.getLogger(ApiHandler.class.getName());
     private final TokenHandler tokenHandler = new TokenHandler();
@@ -32,10 +30,6 @@ public class ApiHandler {
     private BufferedWriter twitch_writer;
     private BufferedReader twitch_reader;
 
-    private final String domain = HTTPS + "api.twitch.tv";;
-    private static final String HTTPS = "https://";
-    private static final String SLASH = "/";
-
     public ApiHandler(ApiHandlerBuilder apiHandlerBuilder) {
         this.params = apiHandlerBuilder.params;
         this.headers = apiHandlerBuilder.headers;
@@ -43,26 +37,28 @@ public class ApiHandler {
         this.path = apiHandlerBuilder.path;
     }
 
-    public enum PATH {
-        CONNECT("irc.twitch.tv", 6667),
-        OAUTH_TOKEN("oauth2/token", 0),
-        OAUTH_VALIDATE("oauth2/validate", 0),
-        GET_USERS("helix/users", 0),
-        GET_CHANNEL("helix/channels", 0),
-        CLIPS("helix/clips", 0),
-        GET_STREAMS("helix/streams", 0);
+    public enum DOMAIN {
+        CONNECT(Constants.CONNECT_DOMAIN, 6667),
+        OAUTH_TOKEN(Constants.OAUTH2_TOKEN_DOMAIN, 0),
+        OAUTH_VALIDATE(Constants.OAUTH2_VALIDATION_DOMAIN, 0),
+        GET_USERS(Constants.USERS_DOMAIN, 0),
+        GET_CHANNEL(Constants.CHANNELS_DOMAIN, 0),
+        CLIPS(Constants.CLIPS_DOMAIN, 0),
+        GET_STREAMS(Constants.STREAMS_DOMAIN, 0);
 
-        private final String path;
+        private final String domain;
         private final Integer ip;
 
-        PATH(String path, Integer ip) {
-            this.path = path;
+        DOMAIN(String domain, Integer ip) {
+            this.domain = domain;
             this.ip = ip;
         }
 
-        public String getPath() {
-            return path;
+        public String getDomain() {
+            return domain;
         }
+
+        public Integer getIp() {return ip;}
     }
 
     public BufferedWriter getTwitch_writer() {
@@ -78,20 +74,24 @@ public class ApiHandler {
             tokenHandler.validateAndUpdateAccessToken();
             try {
                 @SuppressWarnings("resource")
-                Socket socketConnection = new Socket(PATH.CONNECT.path, PATH.CONNECT.ip);
-                this.twitch_writer = new BufferedWriter(new OutputStreamWriter(socketConnection.getOutputStream()));
-                this.twitch_reader = new BufferedReader(new InputStreamReader(socketConnection.getInputStream()));
+                Socket socketConnection = new Socket(DOMAIN.CONNECT.getDomain(), DOMAIN.CONNECT.getIp());
+                this.twitch_writer = new BufferedWriter(
+                        new OutputStreamWriter(socketConnection.getOutputStream()));
+                this.twitch_reader = new BufferedReader(
+                        new InputStreamReader(socketConnection.getInputStream()));
 
-                this.twitch_writer.write("PASS " + "oauth:" + tokenHandler.getAccessToken() + "\r\n");
-                this.twitch_writer.write("NICK " + tokenHandler.getUserName() + "\r\n");
-                this.twitch_writer.write("CAP REQ :twitch.tv/commands \r\n");
-                this.twitch_writer.write("CAP REQ :twitch.tv/membership \r\n");
+                this.twitch_writer.write(Constants.PASS_OAUTH + tokenHandler.getAccessToken() + "\r\n");
+                this.twitch_writer.write(Constants.NICK + tokenHandler.getUserName() + "\r\n");
+                this.twitch_writer.write(Constants.CAP_REQ_TWITCH_TV_COMMANDS);
+                this.twitch_writer.write(Constants.CAP_REQ_TWITCH_TV_MEMBERSHIP);
                 this.twitch_writer.flush();
 
                 String currentLine = "";
                 while ((currentLine = this.twitch_reader.readLine()) != null) {
-                    if (currentLine.indexOf("004") >= 0) {
-                        LOG.log(Level.INFO, "Connected >> " + tokenHandler.getUserName() + " ~ irc.twitch.tv");
+                    if (currentLine.contains(Constants.CONNECTED_004)) {
+                        LOG.log(Level.INFO,
+                                "Connected >> " + tokenHandler.getUserName()
+                                        + " ~ irc.twitch.tv");
                         break;
                     } else {
                         LOG.log(Level.INFO, currentLine);
@@ -113,14 +113,14 @@ public class ApiHandler {
     public String POST() throws Exception {
         tokenHandler.validateAndUpdateAccessToken();
         checkRequestQuality();
-        HttpPost httpPost = new HttpPost(domain + SLASH + path);
+        HttpPost httpPost = new HttpPost(Constants.API_TWTICH_TV_DOMAIN + Constants.SLASH + path);
         return createAndSendRequest(httpPost);
     }
 
     public String GET() throws Exception {
         tokenHandler.validateAndUpdateAccessToken();
         checkRequestQuality();
-        HttpGet httpGet = new HttpGet(domain + SLASH + path);
+        HttpGet httpGet = new HttpGet(Constants.API_TWTICH_TV_DOMAIN + Constants.SLASH + path);
         return createAndSendRequest(httpGet);
     }
 
@@ -155,7 +155,7 @@ public class ApiHandler {
         return result;
     }
 
-    private void checkRequestQuality() throws Exception {
+    private void checkRequestQuality() {
         if (params == null) {
             params = new JSONObject();
         }
@@ -169,15 +169,15 @@ public class ApiHandler {
             path = "";
         }
 
-        if (!(headers.has("Content-Type") && path.equals(PATH.CONNECT.path))) {
-            headers.put("Content-Type", "application/json");
+        if (!(headers.has(Constants.CONTENT_TYPE) && path.equals(DOMAIN.CONNECT.getDomain()))) {
+            headers.put(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
         }
-        if (!(headers.has("Authorization") && path.equals(PATH.CONNECT.path))) {
-            headers.put("Authorization", "Bearer " + tokenHandler.getAccessToken());
+        if (!(headers.has(Constants.AUTHORIZATION) && path.equals(DOMAIN.CONNECT.getDomain()))) {
+            headers.put(Constants.AUTHORIZATION, Constants.BEARER + tokenHandler.getAccessToken());
         }
-        if(headers.has("set_client_id")){
-            headers.put(headers.getString("set_client_id"), tokenHandler.getClientId());
-            headers.remove("set_client_id");
+        if(headers.has(Constants.SET_CLIENT_ID)){
+            headers.put(headers.getString(Constants.SET_CLIENT_ID), tokenHandler.getClientId());
+            headers.remove(Constants.SET_CLIENT_ID);
         }
     }
 

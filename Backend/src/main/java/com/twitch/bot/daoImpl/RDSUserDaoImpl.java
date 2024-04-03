@@ -221,8 +221,11 @@ public class RDSUserDaoImpl implements RDSDao<User> {
             }
         }
         ResultSet result = null;
-        if(!columnNames.isEmpty() && columnNamesStr.trim() != "" && whereCondition != null && whereCondition.trim() != ""){
-            result = statement.executeQuery(AWSRelationalDatabaseSystem.USERS.SELECT_RECORDS_WITH_WHERE.toString().replace("{0}", columnNamesStr).replace("{1}", whereCondition));
+        if(!columnNames.isEmpty() && !columnNamesStr.trim().equals("")
+                && whereCondition != null && !whereCondition.trim().equals("")){
+            result = statement.executeQuery(AWSRelationalDatabaseSystem.USERS
+                    .SELECT_RECORDS_WITH_WHERE.toString()
+                    .replace("{0}", columnNamesStr).replace("{1}", whereCondition));
         }
         return result;
     }

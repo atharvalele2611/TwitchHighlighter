@@ -2,7 +2,6 @@ package com.twitch.bot.Service;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,7 +9,6 @@ import java.util.logging.Logger;
 import com.twitch.bot.daoImpl.RDSChannelDaoImpl;
 import com.twitch.bot.handler.ApiHandler;
 import com.twitch.bot.utilites.Constants;
-import com.twitch.bot.utilites.RDSDaoProvider;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
@@ -114,7 +112,7 @@ public class ChannelService {
 
     public String getChannelBroadcasterId(String name) throws Exception {
         String response = new ApiHandler.ApiHandlerBuilder()
-                .setPath(ApiHandler.PATH.GET_USERS.getPath())
+                .setPath(ApiHandler.DOMAIN.GET_USERS.getDomain())
                 .setParams(new JSONObject().put(Constants.LOGIN, name))
                 .setHeaders(new JSONObject().put(Constants.SET_CLIENT_ID, Constants.CLIENT_ID_HEADER))
                 .build()

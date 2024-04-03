@@ -3,14 +3,11 @@ package com.twitch.bot.scheduler;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.twitch.bot.aws.AWSRelationalDatabaseSystem;
 import com.twitch.bot.utilites.Constants;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,16 +18,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.twitch.bot.handler.ApiHandler;
-import com.twitch.bot.handler.ApiHandler.PATH;
 import com.twitch.bot.aws.AWSComprehend;
-import com.twitch.bot.aws.AWSCredentials;
 import com.twitch.bot.utilites.TwitchData;
 import com.twitch.bot.model.MessagesCount;
 import com.twitch.bot.model.TwitchAnalysis;
 import com.twitch.bot.model.TwitchAnalysis.ClipsDetails;
 import com.twitch.bot.model.Channel;
 import com.twitch.bot.model.Subscriptions;
-import com.twitch.bot.Service.ChannelService;
 
 @Lazy(false)
 @Component
@@ -75,7 +69,7 @@ public class ScheduleTwitchLogic {
     public void processChannelMessages(Channel channel, Long tillTimeStamp) throws Exception {
         JSONObject channelDtls = getChannelDetails(channel);
         if (channelDtls.getBoolean(Constants.IS_CHANNEL_LIVE)) {
-            Long startedAt = Long.valueOf(channelDtls.get("stream_started_at").toString());
+            Long startedAt = Long.valueOf(channelDtls.get(Constants.STREAM_STARTED_AT).toString());
             JSONArray messages = twitchData.getTwitchMessageForChannel(channel,
                     tillTimeStamp - frequencySeconds,
                     tillTimeStamp);
@@ -98,7 +92,8 @@ public class ScheduleTwitchLogic {
                 if (!twitchAnalysis.isEmpty()
                         && (twitchAnalysis.get(0).getTimestamp() + coolDownMillis) > tillTimeStamp) {
                     LOG.log(Level.INFO,
-                            "Last Generated Data Time is {0} which is not exceeds the current cooldown of {1} seconds from current time {2}",
+                            "Last Generated Data Time is {0} which " +
+                                    "is not exceeds the current cooldown of {1} seconds from current time {2}",
                             new Object[] { twitchAnalysis.get(0).getTimestamp(), coolDownMillis, tillTimeStamp });
                     twitchData.deleteTwitchMessageForChannel(channel, tillTimeStamp);
                     return;
@@ -140,9 +135,9 @@ public class ScheduleTwitchLogic {
 
     public JSONObject getChannelDetails(Channel channel) throws Exception{
         String response = new ApiHandler.ApiHandlerBuilder()
-                .setPath(PATH.GET_STREAMS.getPath())
+                .setPath(ApiHandler.DOMAIN.GET_STREAMS.getDomain())
                 .setParams(new JSONObject()
-                        .put("user_login", channel.getChannelName()))
+                        .put(Constants.USER_LOGIN, channel.getChannelName()))
                 .setHeaders(new JSONObject().put(Constants.SET_CLIENT_ID, Constants.CLIENT_ID_HEADER))
                 .build()
                 .GET();
@@ -154,13 +149,14 @@ public class ScheduleTwitchLogic {
             channelDtls.put(Constants.IS_CHANNEL_LIVE, false);
         }else{
             JSONObject data = responseData.getJSONArray(Constants.DATA).getJSONObject(0);
-            Boolean isChannelLive = data.get("type").toString().equalsIgnoreCase("live");
+            Boolean isChannelLive = data.get(Constants.TYPE).toString()
+                    .equalsIgnoreCase(Constants.LIVE);
             channelDtls.put(Constants.IS_CHANNEL_LIVE, isChannelLive);
             if(isChannelLive){
-                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                Date date = inputFormat.parse(data.get("started_at").toString());
-                channelDtls.put("stream_started_at", date.getTime());
+                SimpleDateFormat inputFormat = new SimpleDateFormat(Constants.DATE_TIME_PATTERN);
+                inputFormat.setTimeZone(TimeZone.getTimeZone(Constants.UTC));
+                Date date = inputFormat.parse(data.get(Constants.STARTED_AT).toString());
+                channelDtls.put(Constants.STREAM_STARTED_AT, date.getTime());
             }   
         }
         return channelDtls;
@@ -190,7 +186,7 @@ public class ScheduleTwitchLogic {
 
     public ClipsDetails awsClipsGeneration(Channel channel) throws Exception{
         String response = new ApiHandler.ApiHandlerBuilder()
-                .setPath(PATH.CLIPS.getPath())
+                .setPath(ApiHandler.DOMAIN.CLIPS.getDomain())
                 .setParams(new JSONObject().put(Constants.BROADCASTER_ID, channel.getTwitchId()))
                 .setHeaders(new JSONObject().put(Constants.SET_CLIENT_ID, Constants.CLIENT_ID_HEADER))
                 .build()
@@ -207,7 +203,7 @@ public class ScheduleTwitchLogic {
         LOG.log(Level.INFO,"CLIPS:::clip_id in clips 1.1 ::: " + clip_id);
         Thread.sleep(5000);//*Thread Sleeps so that the create clip is done generating on twitch side */
         response = new ApiHandler.ApiHandlerBuilder()
-                .setPath(PATH.CLIPS.getPath())
+                .setPath(ApiHandler.DOMAIN.CLIPS.getDomain())
                 .setParams(new JSONObject().put(Constants.ID, clip_id))
                 .setHeaders(new JSONObject().put(Constants.SET_CLIENT_ID, Constants.CLIENT_ID_HEADER))
                 .build()

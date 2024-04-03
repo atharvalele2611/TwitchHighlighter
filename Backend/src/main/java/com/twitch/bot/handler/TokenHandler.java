@@ -2,7 +2,6 @@ package com.twitch.bot.handler;
 
 import com.twitch.bot.utilites.Constants;
 import com.twitch.bot.utilites.TwitchCredentialsProvider;
-import com.twitch.bot.utilites.TwitchData;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -46,7 +45,7 @@ public class TokenHandler {
         String result = "";
         int status;
         HttpGet httpGet = new HttpGet(Constants.AUTHORIZATION_DOMAIN
-                + Constants.SLASH + ApiHandler.PATH.OAUTH_VALIDATE.getPath());
+                + Constants.SLASH + ApiHandler.DOMAIN.OAUTH_VALIDATE.getDomain());
 
         // Headers Part
         httpGet.setHeader(Constants.AUTHORIZATION, Constants.BEARER + accessToken);
@@ -55,8 +54,6 @@ public class TokenHandler {
         RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(connectionTimeOut)
                 .setSocketTimeout(300000).build();
         httpGet.setConfig(requestConfig);
-
-        // httpGet.setURI(uriBuilder.build());
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
              CloseableHttpResponse response = httpClient.execute(httpGet)) {
@@ -70,9 +67,11 @@ public class TokenHandler {
             JSONObject oauth_json = new JSONObject(oauth_data);
             sendAccessTokenAndRefreshTokenToMongoDB(oauth_json.getString(Constants.ACCESS_TOKEN),
                     oauth_json.getString(Constants.REFRESH_TOKEN));
-            result = new JSONObject().put("status", "OAUTH_UPDATED_SUCCESSFUL").toString();
+            result = new JSONObject().put(Constants.STATUS,
+                    Constants.OAUTH_UPDATED_SUCCESSFUL).toString();
         } else if (status == 200) {
-            result = new JSONObject().put("status", "OAUTH_FETCHED_SUCCESSFUL").toString();
+            result = new JSONObject().put(Constants.STATUS,
+                    Constants.OAUTH_UPDATED_SUCCESSFUL).toString();
         } else {
             LOG.log(Level.SEVERE, "Issue in Oauth ::: status ::: " + status + " ::: response ::: " + result);
             throw new Exception("Issue in Oauth Generation");
@@ -84,10 +83,10 @@ public class TokenHandler {
         String result = "";
         int status;
         HttpPost httpPost = new HttpPost(Constants.AUTHORIZATION_DOMAIN
-                + Constants.SLASH + ApiHandler.PATH.OAUTH_TOKEN.getPath());
+                + Constants.SLASH + ApiHandler.DOMAIN.OAUTH_TOKEN.getDomain());
 
         // Headers Part
-        httpPost.setHeader(Constants.CONTENT_TYPE, Constants.URL_ENCODED);
+        httpPost.setHeader(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
 
         URIBuilder uriBuilder = new URIBuilder(httpPost.getURI());
         httpPost.setURI(uriBuilder.build());
