@@ -7,13 +7,9 @@ import {
   HStack,
   Image,
   Link,
+  Flex
 } from "@chakra-ui/react";
 import React, { useState, useRef } from "react";
-import { Channel } from "./ChannelGrid";
-import tubbo from "../assets/tubbo.png";
-import summit1g from "../assets/summit1g.png";
-import shroud from "../assets/shroud.png";
-import xQc from "../assets/xQc.png";
 import logo from "../assets/Twitch_TV.png";
 import { Link as RouteLink } from "react-router-dom";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
@@ -50,9 +46,9 @@ const images = [
   },
 ];
 
-function showImage(name: string): string {
-  const image = images.find((image) => image.title === name);
-  return image ? image.src : logo;
+function showImage(channel: any): string {
+  const image = channel.profile_image_url;
+  return image ? image : logo;
 }
 
 const ChannelCard = (channelData: any) => {
@@ -62,7 +58,7 @@ const ChannelCard = (channelData: any) => {
   );
   const [isSubscribeAPIHit, setIsSubscribeAPIHit] = useState(false);
   const [isLive, setIsLive] = useState(false);
-
+  console.log("channelData is_user_subscribed " + channelData.channel.is_user_subscribed);
   const subscribe = () => {
     
     if (!isSubscribed) {
@@ -90,26 +86,37 @@ const ChannelCard = (channelData: any) => {
       <Card borderRadius={10} overflow="hidden" maxW="sm" width="300px">
         {isSubscribed ? (
           <Link as={RouteLink} to={channelData.channel.channel_name + "/clips"}>
-            <Image src={showImage(channelData.channel.channel_name)} />
+            <Image src={showImage(channelData.channel)} />
           </Link>
         ) : (
-          <Image src={showImage(channelData.channel.channel_name)} />
+          <Image src={showImage(channelData.channel)} />
         )}
         <CardBody>
           <HStack justifyContent={"space-between"}>
             {isSubscribed ? (
-              <Link
-                as={RouteLink}
-                to={channelData.channel.channel_name + "/clips"}
-              >
-                <Heading fontSize="2xl">
+              <Flex>
+                  <Link
+                  as={RouteLink}
+                  to={channelData.channel.channel_name + "/clips"}
+                >
+                  <Heading fontSize="2xl">
+                    {channelData.channel.channel_name}
+                  </Heading>
+                </Link>
+                <button onClick={subscribe} disabled={isSubscribeAPIHit}>
+                  <AiFillHeart color="#ff6b81" size={20} />
+                </button>
+              </Flex>
+            ) : (
+              <Flex>
+                  <Heading fontSize="2xl">
                   {channelData.channel.channel_name}
                 </Heading>
-              </Link>
-            ) : (
-              <Heading fontSize="2xl">
-                {channelData.channel.channel_name}
-              </Heading>
+                <button onClick={subscribe} disabled={isSubscribeAPIHit}>
+                <AiOutlineHeart size={20} onClick={subscribe} />
+              </button>
+              </Flex>
+              
             )}
 
             {/* {isLive ? (
@@ -133,15 +140,7 @@ const ChannelCard = (channelData: any) => {
                 Offline
               </Button>
             )} */}
-            {isSubscribed ? (
-              <button onClick={subscribe} disabled={isSubscribeAPIHit}>
-                <AiFillHeart color="#ff6b81" size={20} />
-              </button>
-            ) : (
-              <button onClick={subscribe} disabled={isSubscribeAPIHit}>
-                <AiOutlineHeart size={20} onClick={subscribe} />
-              </button>
-            )}
+            
           </HStack>
         </CardBody>
       </Card>

@@ -29,10 +29,9 @@ public class TokenHandler {
     private final String clientSecret;
     private final Integer connectionTimeOut = 5000;
     private final String userName;
-    private final TwitchCredentialsProvider twitchCredentialsProvider;
+    private static final TwitchCredentialsProvider twitchCredentialsProvider = new TwitchCredentialsProvider();
 
     public TokenHandler() {
-        this.twitchCredentialsProvider = new TwitchCredentialsProvider();
         JSONObject credentials = twitchCredentialsProvider.getTwitchCredentials();
         this.accessToken = credentials.getString(Constants.ACCESS_TOKEN);
         this.refreshToken = credentials.getString(Constants.REFRESH_TOKEN);
@@ -86,7 +85,8 @@ public class TokenHandler {
                 + Constants.SLASH + ApiHandler.DOMAIN.OAUTH_TOKEN.getDomain());
 
         // Headers Part
-        httpPost.setHeader(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON);
+        httpPost.setHeader(Constants.CONTENT_TYPE, Constants.APPLICATION_X_WWW_FORM_URLENCODED);
+//        httpPost.setHeader(Constants.CLIENT_ID_HEADER, clientId);
 
         URIBuilder uriBuilder = new URIBuilder(httpPost.getURI());
         httpPost.setURI(uriBuilder.build());

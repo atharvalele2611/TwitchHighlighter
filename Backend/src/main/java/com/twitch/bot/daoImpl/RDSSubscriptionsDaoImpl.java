@@ -59,7 +59,7 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
         }
         String filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
                 + Constants.EQUALS + subscription.getUserId() + " "
-                + AWSRelationalDatabaseSystem.AND + " "
+                + Constants.AND + " "
                 + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID + Constants.EQUALS
                 + subscription.getChannelId();
         return deleteUsersSubscriptionRecord(filterCondition);
@@ -89,7 +89,7 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
         String filterCondition;
         filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
                 + Constants.EQUALS + userId;
-        filterCondition += " " + AWSRelationalDatabaseSystem.AND + " "
+        filterCondition += " " + Constants.AND + " "
                 + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
                 + Constants.EQUALS + channelId;
         ResultSet result = getUsersSubscriptionRecordBasedOnCriteria(
@@ -109,7 +109,7 @@ public class RDSSubscriptionsDaoImpl implements RDSDao<Subscriptions> {
 
     public Boolean deleteSubscriptionDetailsForAChannel(Channel channel, Integer userId) throws Exception {
         String filterCondition = AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_TWITCH_STREAMERS_ID
-                + Constants.EQUALS + channel.getId() + " " + AWSRelationalDatabaseSystem.AND + " "
+                + Constants.EQUALS + channel.getId() + " " + Constants.AND + " "
                 + AWSRelationalDatabaseSystem.USER_SUBSCRIPTION.COLUMN_USER_ID
                 + Constants.EQUALS + userId;
         return deleteUsersSubscriptionRecord(filterCondition);

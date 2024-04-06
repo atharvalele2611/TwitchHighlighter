@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,17 +12,13 @@ import java.util.logging.Logger;
 
 import com.twitch.bot.utilites.Constants;
 import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twitch.bot.handler.ApiHandler;
-import com.twitch.bot.handler.ApiHandler.PATH;
 import com.twitch.bot.utilites.TwitchAWS_DynamoDB;
 import com.twitch.bot.utilites.TwitchData;
-import com.twitch.bot.model.TwitchAnalysis;
 import com.twitch.bot.model.TwitchAnalysis.SentimentalData;
 import com.twitch.bot.model.Channel;
 import com.twitch.bot.model.User;
@@ -175,7 +170,7 @@ public class Connection {
 
     public List<HashMap<String, Object>> getAllChannels(User user) throws Exception{
         HashMap<String, Channel> channels = channelService.getChannels();
-//        LOG.log(Level.INFO, "channels ::: "+ channels);
+        LOG.log(Level.INFO, "channels 1 ::: "+ channels);
         Iterator<String> channelsIter = channels.keySet().iterator();
         List<HashMap<String, Object>> result = new ArrayList<>();
         List<Integer> subscribedChannelIds = subscriptionService.getAllSubscribedChannelIds(user);
@@ -187,8 +182,10 @@ public class Connection {
             channelDtls.put(Constants.CHANNEL_NAME, channel.getChannelName());
             channelDtls.put(Constants.TWITCH_ID, channel.getTwitchId());
             channelDtls.put(Constants.IS_USER_SUBSCRIBED, subscribedChannelIds.contains(channel.getId()));
+            channelDtls.put(Constants.OFFLINE_IMAGE_URL, channel.getOfflineImageUrl());
             result.add(channelDtls);
         }
+        LOG.log(Level.INFO, "channels list ::: "+ result);
         return result;
     }
 }

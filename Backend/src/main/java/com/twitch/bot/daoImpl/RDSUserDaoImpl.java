@@ -68,7 +68,7 @@ public class RDSUserDaoImpl implements RDSDao<User> {
             filterCondition = AWSRelationalDatabaseSystem.USERS.COLUMN_EMAIL
                     + Constants.EQUALS + addStringLiteralToString(emailOrName);
         }
-        filterCondition += " " + AWSRelationalDatabaseSystem.AND + " "
+        filterCondition += " " + Constants.AND + " "
                 + AWSRelationalDatabaseSystem.USERS.COLUMN_PASSWORD
                 + Constants.EQUALS + addStringLiteralToString(password);
 

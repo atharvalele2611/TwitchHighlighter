@@ -19,22 +19,22 @@ public class BotConnectApplication {
 		SpringApplication.run(BotConnectApplication.class, args);
 	}
 
-	@Bean
-	public TaskScheduler taskScheduler() {
-		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-		threadPoolTaskScheduler.setPoolSize(10);
-		threadPoolTaskScheduler.setThreadNamePrefix("task-scheduler");
-		return threadPoolTaskScheduler;
-	}
+//	@Bean
+//	public TaskScheduler taskScheduler() {
+//		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+//		threadPoolTaskScheduler.setPoolSize(10);
+//		threadPoolTaskScheduler.setThreadNamePrefix("task-scheduler");
+//		return threadPoolTaskScheduler;
+//	}
 
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("*").allowedOrigins("*");
-			}
-		};
-	}
+//	@Bean
+//	public WebMvcConfigurer corsConfigurer() {
+//		return new WebMvcConfigurer() {
+//			@Override
+//			public void addCorsMappings(CorsRegistry registry) {
+//				registry.addMapping("*").allowedOrigins("*");
+//			}
+//		};
+//	}
 
 }

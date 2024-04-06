@@ -25,6 +25,7 @@ import Login from "./components/Login";
 import { getIsUserLoggedIn, logOutUser } from "./services/session";
 import SubscribeGrid from "./components/SubscribeGrid";
 import { SQSQueueConsumerInitate } from "./SQSQueueConsumer";
+import Search from "./components/Search";
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
   const [alertType, setAlertType] = useState(AlertTypes.SUCCESS);
   const [showErrorAlertDiv, setShowErrorAlertDiv] = useState(false);
   const handleSearch = (text: string) => {
+    console.log(text);
     setSearchText(text);
   };
 
@@ -86,6 +88,12 @@ function App() {
               path="/:channel_name/clips"
               element={
                 getIsUserLoggedIn() ? <Clips /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              path="/search"
+              element={
+                getIsUserLoggedIn() ? <Search searchText={searchText} /> : <Navigate to="/login" />
               }
             />
             <Route

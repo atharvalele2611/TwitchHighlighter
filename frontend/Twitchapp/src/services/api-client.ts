@@ -20,7 +20,7 @@ const getHeaders = (): any => {
 }
 
 export const getChannels = async () => {
-  console.log(domain);
+  // console.log(domain);
   const response = await axios.get(domain + "/channels", {headers: getHeaders()});
   return response.data;
 };
@@ -119,3 +119,13 @@ return responseAPI;
 };
 
 export const getSubscribedChannels = async () => {};
+
+export const searchChannel = async(channel_name:any) => {
+    const response = await axios.get(domain + "/search", 
+    { headers: getHeaders(),
+      params:{
+      channel_name : channel_name
+     }
+    });
+     return response;
+}

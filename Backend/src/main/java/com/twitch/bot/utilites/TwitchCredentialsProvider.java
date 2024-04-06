@@ -42,9 +42,7 @@ public class TwitchCredentialsProvider {
         MongoCollection<Document> collection = database.getCollection(Constants.MONGO_COLLECTION);
         JSONObject data = new JSONObject();
         FindIterable<Document> iterDoc = collection.find();
-        Iterator<Document> it = iterDoc.iterator();
-        while (it.hasNext()) {
-            Document document = it.next();
+        for (Document document : iterDoc) {
             JSONObject documentData = new JSONObject(document.toJson());
             data.put(Constants.ACCESS_TOKEN, documentData.getString(Constants.ACCESS_TOKEN));
             data.put(Constants.REFRESH_TOKEN, documentData.getString(Constants.REFRESH_TOKEN));

@@ -66,7 +66,7 @@ public class RDSChannelDaoImpl implements RDSDao<Channel> {
         }
         if(ifGivenObjectIsValid(twitchId)){
             if(!filterCondition.trim().equals("")){
-                filterCondition += " " + AWSRelationalDatabaseSystem.AND + " ";
+                filterCondition += " " + Constants.AND + " ";
             }
             filterCondition += AWSRelationalDatabaseSystem.TWITCH_STREAMERS.COLUMN_TWITCH_ID + " = " + twitchId;
         }

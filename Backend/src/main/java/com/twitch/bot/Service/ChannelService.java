@@ -1,5 +1,6 @@
 package com.twitch.bot.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +67,7 @@ public class ChannelService {
     }
 
     public Channel addChannel(String channelName) throws Exception{
-        String broadcaster_id = getChannelBroadcasterId(channelName);
-        return addChannel(channelName, broadcaster_id);
+        return getSingleChannelFromTwitch(channelName);
     }
 
     public Channel addChannel(String channelName, String channelId) throws Exception {
@@ -110,7 +110,7 @@ public class ChannelService {
         }
     }
 
-    public String getChannelBroadcasterId(String name) throws Exception {
+    public Channel getSingleChannelFromTwitch(String name) throws Exception {
         String response = new ApiHandler.ApiHandlerBuilder()
                 .setPath(ApiHandler.DOMAIN.GET_USERS.getDomain())
                 .setParams(new JSONObject().put(Constants.LOGIN, name))
@@ -118,11 +118,42 @@ public class ChannelService {
                 .build()
                 .GET();
         JSONObject responseData = new JSONObject(response);
-        String broadcaster_id = responseData
+        JSONObject jsonObject = responseData
                 .getJSONArray(Constants.DATA)
-                .getJSONObject(0)
-                .getString(Constants.ID);
-        LOG.log(Level.INFO, "broadcaster_id :::: " + broadcaster_id);
-        return broadcaster_id;
+                .getJSONObject(0);
+        String loginName = jsonObject.getString(Constants.LOGIN);
+        String offline_image_url = jsonObject.getString(Constants.OFFLINE_IMAGE_URL);
+        String broadcasterId = jsonObject.getString(Constants.ID);
+        Channel channel = addChannel(loginName,broadcasterId);
+        channel.setOfflineImageURL(offline_image_url);
+        channels.put(loginName,channel);
+        LOG.log(Level.INFO, "Channel " + channel);
+        return channel;
+    }
+
+    public List<HashMap<String, Object>> getChannelsFromTwitch(String searchQuery) throws Exception {
+        List<HashMap<String, Object>> channelList = new ArrayList<>();
+        String response = new ApiHandler.ApiHandlerBuilder()
+                .setPath(ApiHandler.DOMAIN.GET_USERS.getDomain())
+                .setParams(new JSONObject().put(Constants.LOGIN, searchQuery))
+                .setHeaders(new JSONObject().put(Constants.SET_CLIENT_ID, Constants.CLIENT_ID_HEADER))
+                .build()
+                .GET();
+        JSONObject responseData = new JSONObject(response);
+        for(Object object : responseData.getJSONArray(Constants.DATA)){
+            JSONObject jsonObject = (JSONObject) object;
+            String loginName = jsonObject.getString(Constants.LOGIN);
+            String offline_image_url = jsonObject.getString(Constants.OFFLINE_IMAGE_URL);
+            Channel channel = addChannel(loginName);
+            channel.setOfflineImageURL(offline_image_url);
+            HashMap<String, Object> channelDtls = new HashMap<>();
+            channelDtls.put(Constants.ID, channel.getId());
+            channelDtls.put(Constants.CHANNEL_NAME, channel.getChannelName());
+            channelDtls.put(Constants.TWITCH_ID, channel.getTwitchId());
+            channelDtls.put(Constants.IS_USER_SUBSCRIBED, false);
+            channelDtls.put(Constants.OFFLINE_IMAGE_URL, channel.getOfflineImageUrl());
+            channelList.add(channelDtls);
+        }
+        return channelList;
     }
 }

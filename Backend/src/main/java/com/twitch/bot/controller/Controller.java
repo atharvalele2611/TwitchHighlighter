@@ -1,6 +1,7 @@
 package com.twitch.bot.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,8 +51,10 @@ public class Controller {
             if (!isValidUser) {
                 return new ResponseEntity<>(responseHeaders, HttpStatus.UNAUTHORIZED);
             }
-            return new ResponseEntity<>(
-                    twitchConnection.getAllChannels(userService.getUserDetails(Integer.parseInt(userId.toString()))),
+            List<HashMap<String, Object>> allChannels = twitchConnection.getAllChannels(
+                    userService.getUserDetails(Integer.parseInt(userId.toString())));
+            LOG.log(Level.INFO, "GET /channels {0}", allChannels);
+            return new ResponseEntity<>(allChannels,
                     responseHeaders, HttpStatus.OK);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Exception in /channels " + e.getMessage());
@@ -69,18 +72,6 @@ public class Controller {
         return new ResponseEntity<>(response, responseHeaders, HttpStatus.OK);
     }
 
-    @GetMapping("/channel_broadcastId")
-    public ResponseEntity<Object> getChannelBroadcastId(@RequestParam("channel_name") String channelName) {
-        try {
-            return new ResponseEntity<>(channelService.getChannelBroadcasterId(channelName), responseHeaders,
-                    HttpStatus.OK);
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Exception in /channel_broadcastId " + e.getMessage());
-            e.printStackTrace();
-            return new ResponseEntity<>(responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @PostMapping("/subscribeChannel")
     public ResponseEntity<Object> subscribeChannel(@RequestParam("channel_name") String channelName,
                                                    @RequestParam("user_id") Integer userId) {
@@ -88,7 +79,7 @@ public class Controller {
         try {
             channelName = channelName.toLowerCase();
             Channel newChannel = channelService.addChannel(channelName);
-            channelService.joinChannel(channelName,twitchConnection);
+            if(!newChannel.getIsListeningToChannel()) channelService.joinChannel(channelName,twitchConnection);
             if(!subscriptionService.isUserSubscribedToChannel(userId,newChannel)){
                 subscriptionService.addUserSubscriptions(userId,newChannel);
             }
@@ -103,7 +94,7 @@ public class Controller {
     @DeleteMapping("/unSubscribeChannel")
     public ResponseEntity<Object> unSubscribeChannel(@RequestParam("channel_name") String channelName,
                                                      @RequestParam("user_id") Integer userId) {
-        LOG.log(Level.INFO, "DELETE /removeChannel {0}", channelName);
+        LOG.log(Level.INFO, "DELETE /unSubscribeChannel {0}", channelName);
         try {
             channelName = channelName.toLowerCase();
             twitchConnection.removeAndDeleteChannelData(channelName,userId);
@@ -206,41 +197,11 @@ public class Controller {
         }
     }
 
-    @PostMapping("user/subscriptions")
-    public ResponseEntity<Object> addUserSubscriptions(@RequestHeader Object userId,
-            @RequestParam("channel_id") String channelId) {
-        try {
-            Subscriptions subscription = subscriptionService.
-                    checkAndAddUserSubscriptions(Integer.parseInt(userId.toString()),
-                    Integer.parseInt(channelId));
-            if (subscription != null) {
-                return new ResponseEntity<>(subscription, responseHeaders, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(responseHeaders, HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Exception in POST user/subscriptions " + ex.getMessage());
-            ex.printStackTrace();
-            return new ResponseEntity<>(responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @DeleteMapping("user/subscriptions")
-    public ResponseEntity<Object> deleteUserSubscriptions(@RequestHeader Object userId,
-            @RequestParam("channel_id") String channelId) {
-        try {
-            Boolean isDeleteDone = subscriptionService
-                    .checkAndDeleteUserSubscriptions(Integer.parseInt(userId.toString()),
-                    Integer.parseInt(channelId));
-            if (isDeleteDone) {
-                return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(responseHeaders, HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "Exception in DELETE user/subscriptions " + ex.getMessage());
-            ex.printStackTrace();
-            return new ResponseEntity<>(responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/search")
+    public ResponseEntity<Object> searchChannel(@RequestParam("channel_name") String searchText)
+            throws Exception {
+        List<HashMap<String, Object>> searchedChannels = channelService.getChannelsFromTwitch(searchText);
+        LOG.log(Level.INFO, "GET /search returns {0}", searchedChannels);
+        return new ResponseEntity<>(searchedChannels, responseHeaders, HttpStatus.OK);
     }
 }

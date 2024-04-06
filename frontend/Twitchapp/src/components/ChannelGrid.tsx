@@ -20,6 +20,7 @@ export interface Channel {
   channel_name: string;
   id: number;
   is_user_subscribed: boolean;
+  offline_image_url: string;
 }
 
 interface Props {
@@ -30,7 +31,7 @@ const ChannelGrid = ({ searchText }: Props) => {
   const [channels, setchannel] = useState<Channel[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setLoading] = useState(true);
-  const [showSubscribed, setSubscribed] = useState(true);
+  const [showSubscribed, setSubscribed] = useState(false);
   const skeletons = [1, 2, 3, 4, 5, 6];
   const navigate = useNavigate();
 
@@ -74,7 +75,7 @@ const ChannelGrid = ({ searchText }: Props) => {
       return true;
     }
   });
-
+  console.log("showChannels ", showChannels)
   if (filteredChannels.length !== 0)
     return (
       <>

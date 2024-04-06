@@ -3,10 +3,11 @@ package com.twitch.bot.model;
 import com.twitch.bot.utilites.TwitchData;
 
 public class Channel {
-    private Integer id;
-    private String channel_name;
-    private String twitch_id;
+    private final Integer id;
+    private final String channel_name;
+    private final String twitch_id;
     private Boolean isListeningToChannel;
+    private String offlineImageUrl;
 
     public Channel(Integer id, String channel_name, String twitch_id){
         this.id = id;
@@ -37,7 +38,14 @@ public class Channel {
     public Boolean getIsListeningToChannel(){
         return isListeningToChannel;
     }
-    
+
+    public String getOfflineImageUrl() {
+        return offlineImageUrl;
+    }
+
+    public void setOfflineImageURL(String offlineImageUrl){
+        this.offlineImageUrl = offlineImageUrl;
+    }
 
     public void setIsListeningToChannel(Boolean isListeningToChannel, TwitchData twitchData){
         if(twitchData != null){
@@ -48,6 +56,8 @@ public class Channel {
 
     @Override
     public final String toString() {
-		return "ID : " + id + ", Channel Name : " + channel_name + ", Twitch Id : " + twitch_id + ", Is the Server Listening to Channel? : " + isListeningToChannel;
+		return "ID : " + id + ", Channel Name : " + channel_name + ", Twitch Id : " + twitch_id +
+                ", Is the Server Listening to Channel? : " + isListeningToChannel +
+                ", offline_image_url : " + offlineImageUrl;
 	}
 }

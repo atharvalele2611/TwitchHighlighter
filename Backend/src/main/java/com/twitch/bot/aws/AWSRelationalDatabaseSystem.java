@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class AWSRelationalDatabaseSystem {
     private static final Logger LOG = Logger.getLogger(AWSRelationalDatabaseSystem.class.getName());
     public static Connection rdsConnection;
-    
+
     public enum USERS{
         TABLENAME("Users"),
         COLUMN_ID("USER_ID"),
@@ -135,6 +135,9 @@ public class AWSRelationalDatabaseSystem {
         LOG.log(Level.INFO, "Getting remote connection with connection string from environment variables");
         Class.forName(Constants.JDBC_DRIVER);
         checkAndCreateDatabase(Constants.RDS_DB_NAME);
+//        final String jdbcUrl = "jdbc:mysql://" + Constants.RDS_HOSTNAME + ":" + Constants.RDS_PORT
+//                + "/" + Constants.RDS_DB_NAME + "?user=" + Constants.RDS_USERNAME
+//                + "&password=" + Constants.RDS_PASSWORD;
         final String jdbcUrl = "jdbc:mysql://" + Constants.RDS_HOSTNAME + ":" + Constants.RDS_PORT
                 + "/" + Constants.RDS_DB_NAME + "?user=" + Constants.RDS_USERNAME
                 + "&password=" + Constants.RDS_PASSWORD;

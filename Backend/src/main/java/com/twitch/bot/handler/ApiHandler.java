@@ -21,14 +21,14 @@ import org.springframework.context.annotation.DependsOn;
 @Component
 public class ApiHandler {
     private static final Logger LOG = Logger.getLogger(ApiHandler.class.getName());
-    private final TokenHandler tokenHandler = new TokenHandler();
+    private static final TokenHandler tokenHandler = new TokenHandler();
     private JSONObject params;
     private JSONObject headers;
     private JSONObject body;
     private String path;
     private boolean isConnectionRunning = false;
-    private BufferedWriter twitch_writer;
-    private BufferedReader twitch_reader;
+    private static BufferedWriter twitch_writer;
+    private static BufferedReader twitch_reader;
 
     public ApiHandler(ApiHandlerBuilder apiHandlerBuilder) {
         this.params = apiHandlerBuilder.params;
@@ -177,7 +177,7 @@ public class ApiHandler {
         }
         if(headers.has(Constants.SET_CLIENT_ID)){
             headers.put(headers.getString(Constants.SET_CLIENT_ID), tokenHandler.getClientId());
-            headers.remove(Constants.SET_CLIENT_ID);
+//            headers.remove(Constants.SET_CLIENT_ID);
         }
     }
 

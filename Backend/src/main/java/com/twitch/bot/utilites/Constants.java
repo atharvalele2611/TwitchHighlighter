@@ -38,6 +38,7 @@ public class Constants {
     public static final String TYPE = "type";
     public static final String LIVE = "live";
     public static final String IS_CHANNEL_LIVE = "is_channel_live";
+    public static final String OFFLINE_IMAGE_URL = "profile_image_url";
 
     public static final String CLIP_ID = "clip_id";
     public static final String CLIP_DETAILS = "clip_details";
