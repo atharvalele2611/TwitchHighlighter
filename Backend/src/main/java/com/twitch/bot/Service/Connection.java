@@ -170,7 +170,6 @@ public class Connection {
 
     public List<HashMap<String, Object>> getAllChannels(User user) throws Exception{
         HashMap<String, Channel> channels = channelService.getChannels();
-        LOG.log(Level.INFO, "channels 1 ::: "+ channels);
         Iterator<String> channelsIter = channels.keySet().iterator();
         List<HashMap<String, Object>> result = new ArrayList<>();
         List<Integer> subscribedChannelIds = subscriptionService.getAllSubscribedChannelIds(user);

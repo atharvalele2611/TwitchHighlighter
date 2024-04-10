@@ -77,6 +77,7 @@ const ChannelGrid = ({ searchText }: Props) => {
   });
   console.log("showChannels ", showChannels)
   if (filteredChannels.length !== 0)
+    
     return (
       <>
         <HStack className="mT10">

@@ -140,6 +140,7 @@ public class ChannelService {
                 .build()
                 .GET();
         JSONObject responseData = new JSONObject(response);
+        if(responseData.getJSONArray(Constants.DATA) == null) return channelList;
         for(Object object : responseData.getJSONArray(Constants.DATA)){
             JSONObject jsonObject = (JSONObject) object;
             String loginName = jsonObject.getString(Constants.LOGIN);

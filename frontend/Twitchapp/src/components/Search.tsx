@@ -30,10 +30,6 @@ const Search = ({ searchText} : SearchProps ) => {
         });
     }
   }, [searchText]);
-
-  console.log("channels ", channels);
-  console.log("typeof ",  typeof(channels));
-
   if(channels.length !== 0){
     return (
       <>

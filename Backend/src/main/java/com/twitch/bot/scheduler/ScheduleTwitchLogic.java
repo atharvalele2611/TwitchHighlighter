@@ -100,9 +100,9 @@ public class ScheduleTwitchLogic {
                 }
                 ClipsDetails clips = awsClipsGeneration(channel);
                 if(clips != null){
-                    LOG.log(Level.INFO,"clips ::: " + clips);
                     String sentimental_result = awsComprehend.getSentiment(messageMerge(messages));
-                    LOG.log(Level.INFO,"sentimental_result ::: " + sentimental_result);
+                    LOG.log(Level.INFO,"Sentimental Analysis result for " + channel.getChannelName()
+                            + "  ::: " + sentimental_result);
                     twitchData.addTwitchAnalysis(channel, sentimental_result, clips, System.currentTimeMillis());
 
 //                    AWS_Sns sns = new AWS_Sns(awsCredentials);
@@ -192,7 +192,8 @@ public class ScheduleTwitchLogic {
                 .build()
                 .POST();
         JSONObject responseData = new JSONObject(response);
-        LOG.log(Level.INFO,"CLIPS:::responseData in clips 1 ::: " + responseData);
+        LOG.log(Level.INFO," Clip response for " + channel.getChannelName() +
+                " :: "+ responseData);
         if(!responseData.has(Constants.DATA)){
             LOG.log(Level.SEVERE, "Clips Generation Issue for Channel ::: {0} ::: Response ::: {1}",
                     new Object[]{channel.getChannelName(), responseData});
@@ -200,7 +201,7 @@ public class ScheduleTwitchLogic {
         }
         String clip_id = responseData.getJSONArray(Constants.DATA)
                 .getJSONObject(0).getString(Constants.ID);
-        LOG.log(Level.INFO,"CLIPS:::clip_id in clips 1.1 ::: " + clip_id);
+        LOG.log(Level.INFO,"CLIPS:::clip_id for " + channel.getChannelName() + " ::: " + clip_id);
         Thread.sleep(5000);//*Thread Sleeps so that the create clip is done generating on twitch side */
         response = new ApiHandler.ApiHandlerBuilder()
                 .setPath(ApiHandler.DOMAIN.CLIPS.getDomain())
@@ -209,7 +210,7 @@ public class ScheduleTwitchLogic {
                 .build()
                 .GET();
         responseData = new JSONObject(response);
-        LOG.log(Level.INFO,"CLIPS:::responseData in clips 2 ::: " + responseData);
+        LOG.log(Level.INFO,"CLIPS:::responseData for " + channel.getChannelName() + " ::: "  + responseData);
         responseData = responseData.getJSONArray(Constants.DATA).getJSONObject(0);
         return prepareClipData(responseData,clip_id);
     }
@@ -221,7 +222,7 @@ public class ScheduleTwitchLogic {
         clipsDetails.setEmbed_url(responseData.get(Constants.EMBED_URL).toString());
         clipsDetails.setThumbnail_url(responseData.get(Constants.THUMBNAIL_URL).toString());
         clipsDetails.setCreated_at(responseData.get(Constants.CREATED_AT).toString());
-        LOG.log(Level.INFO,"CLIPS:::data in clips 3 ::: " + clipsDetails);
+        LOG.log(Level.INFO,"CLIPS:::Final Clip Details ::: " + clipsDetails);
         return clipsDetails;
     }
 }
